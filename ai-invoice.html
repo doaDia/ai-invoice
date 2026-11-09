@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>AI Invoice — for small sellers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#f4f6f9;
+    --surface:#ffffff;
+    --surface-2:#eef2f7;
+    --ink:#0f1c2e;
+    --ink-2:#42536a;
+    --ink-3:#6b7a8d;
+    --line:#d9e1ea;
+    --line-strong:#b9c7d6;
+    --navy:#003087;
+    --blue:#0070e0;
+    --blue-dark:#0057b8;
+    --blue-soft:#e3eefc;
+    --green:#0e7a4f;
+    --green-soft:#e2f4ec;
+    --amber:#9a6206;
+    --amber-soft:#fdf0d7;
+    --red:#b3261e;
+    --red-soft:#fdecea;
+    --paper:#ffffff;
+    --shadow:0 1px 2px rgba(15,28,46,.06),0 10px 30px -12px rgba(15,28,46,.18);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1220;
+      --surface:#121d30;
+      --surface-2:#182740;
+      --ink:#eaf1f9;
+      --ink-2:#b3c2d6;
+      --ink-3:#8296ad;
+      --line:#263650;
+      --line-strong:#3a5073;
+      --navy:#7db4ff;
+      --blue:#3d94f0;
+      --blue-dark:#6db1f5;
+      --blue-soft:#16294a;
+      --green:#4cc38a;
+      --green-soft:#123527;
+      --amber:#f0b95c;
+      --amber-soft:#3a2c10;
+      --red:#ff8a80;
+      --red-soft:#3d1a17;
+      --paper:#ffffff;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px -12px rgba(0,0,0,.6);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:16px;line-height:1.55;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+  button{font:inherit;cursor:pointer}
+  input,select,textarea{font:inherit;color:inherit}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 18px 56px}
+
+  /* ---------- Intro ---------- */
+  .intro{max-width:760px;margin-bottom:26px}
+  .intro h1{font-size:clamp(28px,4.5vw,42px);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+  .intro h1 .accent{color:var(--blue)}
+  .intro p{margin:0;color:var(--ink-2);font-size:17px;max-width:62ch}
+  .intro-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .tag{
+    display:inline-flex;align-items:center;gap:7px;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--ink-2);
+  }
+  .tag .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+  .tag.paypal{color:var(--navy);border-color:var(--line-strong)}
+  @media (prefers-color-scheme: dark){.tag.paypal{color:var(--blue-dark)}}
+
+  /* ---------- Layout ---------- */
+  .layout{display:grid;grid-template-columns:400px minmax(0,1fr);gap:22px;align-items:start}
+  @media (max-width:920px){.layout{grid-template-columns:1fr}}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+  }
+  .panel-pad{padding:20px}
+  .panel h2{font-size:17px;font-weight:700;margin:0 0 4px;letter-spacing:-.01em}
+  .panel .sub{font-size:14px;color:var(--ink-2);margin:0 0 14px}
+  .step-label{
+    display:flex;align-items:center;gap:9px;font-size:12px;font-weight:700;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;
+  }
+  .step-num{
+    width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;
+    display:inline-flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:0;flex:none;
+  }
+  @media (prefers-color-scheme: dark){.step-num{background:var(--blue);color:#06182e}}
+
+  /* ---------- Composer ---------- */
+  label.field-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin:14px 0 6px}
+  label.field-label:first-of-type{margin-top:0}
+  textarea.sale-input{
+    width:100%;min-height:104px;resize:vertical;
+    border:1.5px solid var(--line-strong);border-radius:10px;
+    background:var(--surface);padding:12px 14px;font-size:16px;line-height:1.5;
+  }
+  textarea.sale-input::placeholder{color:var(--ink-3)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{
+    border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);
+    border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:500;text-align:left;
+  }
+  .chip:hover{border-color:var(--blue);color:var(--blue-dark)}
+  .chip .lang{font-size:11px;font-weight:700;color:var(--ink-3);margin-right:6px;letter-spacing:.05em}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border-radius:10px;border:1.5px solid transparent;
+    padding:11px 18px;font-weight:700;font-size:15px;line-height:1.2;
+    background:var(--surface);color:var(--ink);transition:background .15s,border-color .15s;
+  }
+  .btn-primary{background:var(--blue);color:#fff;width:100%;margin-top:16px;padding:14px 18px;font-size:16px}
+  .btn-primary:hover{background:var(--blue-dark)}
+  .btn-primary:disabled{opacity:.55;cursor:wait}
+  .btn-outline{border-color:var(--line-strong)}
+  .btn-outline:hover{border-color:var(--blue);color:var(--blue-dark)}
+  .btn-small{padding:8px 13px;font-size:13.5px;border-radius:8px}
+  .btn-danger-ghost{color:var(--red)}
+  .spinner{
+    width:16px;height:16px;border-radius:50%;flex:none;
+    border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;
+    animation:spin .7s linear infinite;display:none;
+  }
+  .btn.loading .spinner{display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){.spinner{animation:none}}
+
+  .alert{
+    display:none;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:14px;line-height:1.5;
+  }
+  .alert.show{display:block}
+  .alert.error{background:var(--red-soft);color:var(--red);border:1px solid var(--red)}
+  .alert.ok{background:var(--green-soft);color:var(--green);border:1px solid var(--green)}
+  .alert.info{background:var(--blue-soft);color:var(--ink);border:1px solid var(--line-strong)}
+
+  .divider{height:1px;background:var(--line);margin:20px 0}
+  .text-input{
+    width:100%;border:1.5px solid var(--line-strong);border-radius:10px;
+    background:var(--surface);padding:10px 12px;font-size:15px;
+  }
+  .hint{font-size:13px;color:var(--ink-3);margin-top:6px}
+
+  /* ---------- Reminder ---------- */
+  .reminder-box{
+    width:100%;min-height:110px;resize:vertical;
+    border:1.5px solid var(--line-strong);border-radius:10px;
+    background:var(--surface-2);padding:12px 14px;font-size:14.5px;line-height:1.55;
+  }
+  .row-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+
+  /* ---------- History ---------- */
+  .history-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .history-empty{font-size:14px;color:var(--ink-3);padding:10px 0 2px}
+  .history-item{
+    display:flex;align-items:center;gap:10px;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);
+  }
+  .history-item .h-main{flex:1;min-width:0}
+  .history-item .h-title{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .history-item .h-meta{font-size:12.5px;color:var(--ink-3)}
+  .history-item .h-amt{font-weight:700;font-size:14.5px;white-space:nowrap}
+
+  /* ---------- Invoice paper ---------- */
+  .invoice-col{display:flex;flex-direction:column;gap:22px;min-width:0}
+  .paper{
+    background:var(--paper);color:#14202f;border-radius:var(--radius);
+    box-shadow:var(--shadow);border:1px solid var(--line);
+    padding:clamp(20px,4vw,40px);
+  }
+  @media (prefers-color-scheme: dark){.paper{border-color:#33445c}}
+  .paper input,.paper select,.paper textarea{
+    background:transparent;border:none;border-bottom:1.5px dashed #c3cfdd;color:#14202f;
+    padding:3px 2px;border-radius:0;
+  }
+  .paper input:focus,.paper select:focus,.paper textarea:focus{outline:none;border-bottom:1.5px solid var(--blue);background:#f2f7ff}
+  .inv-head{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-bottom:18px;border-bottom:3px solid #003087}
+  .inv-title{font-size:30px;font-weight:800;letter-spacing:.04em;color:#003087;line-height:1}
+  .inv-from{margin-top:10px}
+  .inv-from .seller-name{font-size:19px;font-weight:700;width:100%;min-width:200px}
+  .inv-from .seller-sub{font-size:13px;color:#5a6b80}
+  .inv-meta{text-align:right;font-size:14px;color:#42536a;min-width:170px}
+  .inv-meta .inv-no{font-family:"IBM Plex Mono",monospace;font-weight:600;color:#14202f;font-size:15px;width:150px;text-align:right}
+  .inv-meta input[type="date"]{font-family:inherit;text-align:right;width:150px}
+  .inv-meta .m-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:4px}
+  .inv-meta .m-label{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8494a9}
+
+  .inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:20px 0 6px}
+  @media (max-width:560px){.inv-parties{grid-template-columns:1fr}}
+  .party-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8494a9;margin-bottom:5px}
+  .party-name{font-size:17px;font-weight:700;width:100%}
+  .party-note{font-size:13.5px;color:#5a6b80;width:100%;resize:vertical;min-height:20px;border-bottom:none !important}
+
+  /* items table */
+  .items-head,.item-row{
+    display:grid;grid-template-columns:minmax(0,1fr) 62px 62px 104px 104px 30px;gap:8px;align-items:center;
+  }
+  .items-head{
+    font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8494a9;
+    border-bottom:2px solid #d9e1ea;padding:14px 0 8px;
+  }
+  .items-head .r,.item-row .r{text-align:right}
+  .item-row{padding:9px 0;border-bottom:1px solid #e6ecf3}
+  .item-row input{width:100%;font-size:14.5px}
+  .item-row input.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-size:13.5px}
+  .item-row .amount{font-family:"IBM Plex Mono",monospace;font-size:13.5px;text-align:right;font-weight:600;white-space:nowrap}
+  .item-del{
+    border:none;background:none;color:#b3261e;font-size:18px;line-height:1;
+    width:28px;height:28px;border-radius:6px;padding:0;
+  }
+  .item-del:hover{background:#fdecea}
+  @media (max-width:640px){
+    .items-head{display:none}
+    .item-row{grid-template-columns:1fr 1fr;grid-template-areas:"desc desc" "qty unit" "price amount" "del del";row-gap:6px;padding:12px 0}
+    .item-row .f-desc{grid-area:desc}
+    .item-row .f-qty{grid-area:qty}
+    .item-row .f-unit{grid-area:unit}
+    .item-row .f-price{grid-area:price}
+    .item-row .f-amount{grid-area:amount;align-self:end;padding-bottom:5px}
+    .item-row .f-del{grid-area:del;justify-self:end}
+    .item-row .mob-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8494a9;margin-bottom:2px}
+  }
+  .mob-label{display:none}
+  .add-item{
+    margin-top:12px;border:1.5px dashed #b9c7d6;background:none;color:#0057b8;
+    border-radius:9px;padding:9px 14px;font-weight:600;font-size:14px;width:100%;
+  }
+  .add-item:hover{border-color:#0070e0;background:#f2f7ff}
+
+  .totals{margin-left:auto;width:min(320px,100%);margin-top:18px;font-size:15px}
+  .totals .t-row{display:flex;justify-content:space-between;padding:6px 0;color:#42536a}
+  .totals .t-row .v{font-family:"IBM Plex Mono",monospace}
+  .totals .t-grand{
+    border-top:2.5px solid #003087;margin-top:8px;padding-top:12px;
+    font-size:19px;font-weight:800;color:#14202f;
+  }
+  .totals .t-grand .v{color:#003087}
+  .totals select{font-weight:600}
+  .inv-notes{margin-top:22px}
+  .inv-notes textarea{width:100%;min-height:44px;resize:vertical;font-size:14.5px;color:#42536a}
+  .inv-foot-note{margin-top:18px;font-size:12.5px;color:#8494a9;border-top:1px solid #e6ecf3;padding-top:12px}
+
+  /* ---------- Actions + PayPal ---------- */
+  .actions-bar{display:flex;flex-wrap:wrap;gap:9px}
+  .pay-panel .usd-line{
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+    padding:13px 15px;margin-bottom:14px;font-size:14.5px;
+  }
+  .pay-panel .usd-big{font-size:22px;font-weight:800}
+  .pay-panel .rate{color:var(--ink-3);font-size:13px}
+  #paypal-buttons{min-height:48px}
+  .paypal-fallback{
+    display:none;border:1px dashed var(--line-strong);border-radius:10px;
+    padding:14px;font-size:14px;color:var(--ink-2);background:var(--surface-2);
+  }
+  .sandbox-note{
+    margin-top:14px;background:var(--amber-soft);color:var(--amber);
+    border-radius:10px;padding:11px 14px;font-size:13.5px;line-height:1.55;font-weight:500;
+  }
+  .paid-box{
+    display:none;border:1.5px solid var(--green);background:var(--green-soft);
+    border-radius:12px;padding:16px 18px;margin-top:16px;
+  }
+  .paid-box.show{display:block}
+  .paid-box .paid-title{font-weight:800;font-size:17px;color:var(--green);display:flex;align-items:center;gap:9px}
+  .paid-box dl{margin:10px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-size:14px}
+  .paid-box dt{color:var(--ink-2);font-weight:600}
+  .paid-box dd{margin:0;font-family:"IBM Plex Mono",monospace;font-size:13.5px;word-break:break-all}
+
+  .share-out{display:none;margin-top:12px}
+  .share-out.show{display:block}
+  .share-out input{
+    width:100%;border:1.5px solid var(--line-strong);border-radius:9px;
+    background:var(--surface-2);padding:9px 11px;font-size:12.5px;font-family:"IBM Plex Mono",monospace;
+  }
+
+  footer.site{
+    margin-top:34px;border-top:1px solid var(--line);padding-top:20px;
+    color:var(--ink-3);font-size:13.5px;line-height:1.65;max-width:820px;
+  }
+  footer.site strong{color:var(--ink-2)}
+  footer.site .stack{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(16px);
+    background:#0f1c2e;color:#fff;padding:12px 18px;border-radius:11px;font-size:14.5px;font-weight:600;
+    box-shadow:0 12px 32px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+    max-width:min(92vw,480px);text-align:center;z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media print{
+    body{background:#fff}
+    .no-print{display:none !important}
+    .wrap{max-width:none;padding:0}
+    .layout{grid-template-columns:1fr}
+    .paper{box-shadow:none;border:none;border-radius:0;padding:10px}
+    .paper input,.paper select,.paper textarea{border-bottom:none !important}
+    .item-del,.add-item{display:none !important}
+    .items-head,.item-row{grid-template-columns:minmax(0,1fr) 62px 62px 104px 104px}
+    .item-row .f-del{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Intro -->
+  <div class="intro no-print">
+    <h1>Describe the sale. <span class="accent">AI writes the invoice.</span> PayPal collects the money.</h1>
+    <p>Type what you sold in plain words — Indonesian or English — and get a clean, professional invoice with a PayPal checkout button in seconds. No spreadsheets, no accounting app, no design skills.</p>
+    <div class="intro-meta">
+      <span class="tag"><span class="dot"></span> Built for small sellers &amp; warung-scale businesses</span>
+      <span class="tag paypal">PayPal AI Hackathon entry</span>
+      <span class="tag">Submission deadline: Fri 13 Nov 2026, 03:00 WIB</span>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- LEFT: composer -->
+    <div style="display:flex;flex-direction:column;gap:22px;min-width:0" class="no-print">
+
+      <section class="panel panel-pad" aria-labelledby="composer-h">
+        <div class="step-label"><span class="step-num">1</span> Describe your sale</div>
+        <h2 id="composer-h">What did you sell?</h2>
+        <p class="sub">One sentence is enough — include the buyer, the items, and the price. The AI turns it into line items.</p>
+
+        <label class="field-label" for="sale-input">Sale description</label>
+        <textarea id="sale-input" class="sale-input" placeholder="e.g. Jual 10kg sayur ke Warung Bu Siti Rp150.000"></textarea>
+
+        <div class="chips" id="chips" aria-label="Example sales"></div>
+
+        <button class="btn btn-primary" id="btn-parse">
+          <span class="spinner" aria-hidden="true"></span>
+          <span id="btn-parse-label">Generate invoice with AI</span>
+        </button>
+
+        <div class="alert error" id="parse-error" role="alert"></div>
+        <div class="alert ok" id="parse-ok" role="status"></div>
+
+        <div class="divider"></div>
+
+        <label class="field-label" for="seller-name">Your business / seller name</label>
+        <input class="text-input" id="seller-name" type="text" placeholder="e.g. Berkah Sayur — Ciseeng" autocomplete="organization" />
+        <p class="hint">Shown at the top of the invoice. You can also edit it directly on the invoice.</p>
+      </section>
+
+      <section class="panel panel-pad" aria-labelledby="reminder-h">
+        <div class="step-label"><span class="step-num">2</span> Get paid faster</div>
+        <h2 id="reminder-h">Payment reminder</h2>
+        <p class="sub">The AI drafts a short, friendly reminder. Copy it and paste it into WhatsApp or any chat.</p>
+        <textarea id="reminder-text" class="reminder-box" placeholder="Generate an invoice first — the reminder will appear here. You can also type your own."></textarea>
+        <div class="row-actions">
+          <button class="btn btn-outline btn-small" id="btn-reminder-ai">Regenerate with AI</button>
+          <button class="btn btn-primary btn-small" id="btn-copy-reminder" style="width:auto;margin-top:0;padding:8px 14px;font-size:13.5px">Copy reminder message</button>
+        </div>
+      </section>
+
+      <section class="panel panel-pad" aria-labelledby="history-h">
+        <div class="step-label"><span class="step-num">3</span> Your invoices</div>
+        <h2 id="history-h">Saved history</h2>
+        <p class="sub">Invoices you save are kept in this browser, ready to reopen.</p>
+        <div class="history-list" id="history-list"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT: invoice + payment -->
+    <div class="invoice-col">
+
+      <div class="paper" id="invoice-paper" aria-label="Invoice preview">
+        <div class="inv-head">
+          <div class="inv-from">
+            <div class="inv-title">INVOICE</div>
+            <input class="seller-name" id="inv-seller" type="text" value="" placeholder="Your business name" aria-label="Seller name" />
+            <div class="seller-sub">Small seller · invoice generated with AI Invoice</div>
+          </div>
+          <div class="inv-meta">
+            <div class="m-row"><span class="m-label">Invoice no.</span><input class="inv-no" id="inv-number" type="text" aria-label="Invoice number" /></div>
+            <div class="m-row"><span class="m-label">Date</span><input type="date" id="inv-date" aria-label="Invoice date" /></div>
+            <div class="m-row"><span class="m-label">Due</span><span>On receipt</span></div>
+          </div>
+        </div>
+
+        <div class="inv-parties">
+          <div>
+            <div class="party-label">Billed to</div>
+            <input class="party-name" id="inv-buyer" type="text" placeholder="Buyer name" aria-label="Buyer name" />
+          </div>
+          <div>
+            <div class="party-label">Currency</div>
+            <select id="inv-currency" aria-label="Currency" style="font-size:16px;font-weight:700">
+              <option value="IDR">IDR — Indonesian Rupiah (Rp)</option>
+              <option value="USD">USD — US Dollar ($)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="items-head" aria-hidden="true">
+          <span>Description</span><span class="r">Qty</span><span class="r">Unit</span><span class="r">Unit price</span><span class="r">Amount</span><span></span>
+        </div>
+        <div id="items-body"></div>
+        <button class="add-item" id="btn-add-item" type="button">+ Add line item</button>
+
+        <div class="totals">
+          <div class="t-row"><span>Subtotal</span><span class="v" id="subtotal-out">—</span></div>
+          <div class="t-row t-grand"><span>Total due</span><span class="v" id="total-out">—</span></div>
+        </div>
+
+        <div class="inv-notes">
+          <div class="party-label">Notes</div>
+          <textarea id="inv-notes" placeholder="e.g. Thank you! Payment via the PayPal button below." aria-label="Invoice notes"></textarea>
+        </div>
+
+        <div class="inv-foot-note">Pay securely with PayPal — use the checkout panel below this invoice. A payment link can also be shared with the buttons under the invoice.</div>
+      </div>
+
+      <div class="actions-bar no-print">
+        <button class="btn btn-outline" id="btn-print" type="button">Print invoice</button>
+        <button class="btn btn-outline" id="btn-save" type="button">Save to history</button>
+        <button class="btn btn-outline" id="btn-share" type="button">Share link</button>
+        <button class="btn btn-outline" id="btn-new" type="button">New invoice</button>
+      </div>
+      <div class="share-out no-print" id="share-out">
+        <input type="text" id="share-link" readonly aria-label="Shareable invoice link" />
+        <p class="hint">Anyone opening this link sees this exact invoice — the invoice data travels inside the link itself, no account or server needed.</p>
+      </div>
+
+      <section class="panel panel-pad pay-panel no-print" aria-labelledby="pay-h">
+        <div class="step-label"><span class="step-num">4</span> Collect payment</div>
+        <h2 id="pay-h">Pay with PayPal</h2>
+        <p class="sub">The buyer pays the invoice total through PayPal. IDR invoices are converted at the fixed demo rate below.</p>
+
+        <div class="usd-line">
+          <span>Total due: <strong id="pay-total-local">—</strong></span>
+          <span class="usd-big" id="pay-total-usd">—</span>
+          <span class="rate">Fixed demo rate: 16,000 IDR = 1 USD</span>
+        </div>
+
+        <div id="paypal-buttons"></div>
+        <div class="paypal-fallback" id="paypal-fallback">
+          The PayPal button could not load (network or ad-blocker). Check your connection and reload the page — the invoice above is still complete and printable.
+        </div>
+
+        <div class="paid-box" id="paid-box" role="status">
+          <div class="paid-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".18"/><path d="M7 12.5l3.2 3.2L17 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Paid (PayPal Sandbox)
+          </div>
+          <dl>
+            <dt>Order ID</dt><dd id="paid-order">—</dd>
+            <dt>Amount</dt><dd id="paid-amount">—</dd>
+            <dt>Payer</dt><dd id="paid-payer">—</dd>
+            <dt>Invoice</dt><dd id="paid-invoice">—</dd>
+          </dl>
+        </div>
+
+        <div class="sandbox-note">
+          <strong>Demo note:</strong> Demo uses PayPal Sandbox (client-id <span class="mono">sb</span>). Swap in your own sandbox client ID in the code for a live sandbox account. No real money moves in sandbox mode.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="site no-print">
+    <div class="stack">
+      <span class="tag paypal">PayPal JS SDK · Sandbox checkout</span>
+      <span class="tag">AI parsing · Pollinations (no API key)</span>
+      <span class="tag">Single static page · share links carry the invoice in the URL</span>
+    </div>
+    <p><strong>How it works, for the judges:</strong> the seller describes a sale in plain Indonesian or English. An AI call (Pollinations text API, keyless) parses it into structured line items, which render as an editable invoice. PayPal Buttons create and capture a real sandbox order for the invoice total (IDR converted at a fixed, clearly shown demo rate of 16,000 IDR = 1 USD). The AI also drafts the WhatsApp payment reminder, and invoices can be saved locally or shared as a self-contained link.</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var RATE = 16000; // fixed demo rate: 16000 IDR = 1 USD
+  var LS_KEY = "ai-invoice-history-v1";
+  var LS_SELLER = "ai-invoice-seller-v1";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var els = {
+    sale: $("sale-input"), chips: $("chips"),
+    btnParse: $("btn-parse"), btnParseLabel: $("btn-parse-label"),
+    parseError: $("parse-error"), parseOk: $("parse-ok"),
+    seller: $("seller-name"), invSeller: $("inv-seller"),
+    invNumber: $("inv-number"), invDate: $("inv-date"),
+    buyer: $("inv-buyer"), currency: $("inv-currency"),
+    itemsBody: $("items-body"), subtotal: $("subtotal-out"), total: $("total-out"),
+    notes: $("inv-notes"),
+    reminder: $("reminder-text"),
+    payLocal: $("pay-total-local"), payUsd: $("pay-total-usd"),
+    paidBox: $("paid-box"), paidOrder: $("paid-order"), paidAmount: $("paid-amount"),
+    paidPayer: $("paid-payer"), paidInvoice: $("paid-invoice"),
+    historyList: $("history-list"),
+    shareOut: $("share-out"), shareLink: $("share-link"),
+    toast: $("toast")
+  };
+
+  var toastTimer = null;
+  function toast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ els.toast.classList.remove("show"); }, 3200);
+  }
+
+  /* ---------- formatting ---------- */
+  function fmtMoney(n, cur){
+    n = Number(n) || 0;
+    if(cur === "USD"){
+      return "$" + n.toLocaleString("en-US",{minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+    return "Rp" + Math.round(n).toLocaleString("id-ID");
+  }
+  function fmtNum(n){
+    n = Number(n) || 0;
+    return n.toLocaleString("en-US",{maximumFractionDigits:2});
+  }
+  function todayStr(){
+    var d = new Date();
+    var m = String(d.getMonth()+1).padStart(2,"0");
+    var day = String(d.getDate()).padStart(2,"0");
+    return d.getFullYear()+"-"+m+"-"+day;
+  }
+  function newInvoiceNo(){
+    var d = new Date();
+    var ymd = d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+    var rnd = Math.floor(1000 + Math.random()*9000);
+    return "INV-"+ymd+"-"+rnd;
+  }
+
+  /* ---------- invoice state ---------- */
+  function getInvoice(){
+    var items = [];
+    var rows = els.itemsBody.querySelectorAll(".item-row");
+    rows.forEach(function(row){
+      var desc = row.querySelector(".f-desc input").value.trim();
+      var qty = parseFloat(row.querySelector(".f-qty input").value) || 0;
+      var unit = row.querySelector(".f-unit input").value.trim();
+      var price = parseFloat(row.querySelector(".f-price input").value) || 0;
+      items.push({ description: desc, quantity: qty, unit: unit, unitPrice: price, amount: Math.round(qty*price*100)/100 });
+    });
+    return {
+      seller: els.invSeller.value.trim(),
+      buyer: els.buyer.value.trim(),
+      number: els.invNumber.value.trim(),
+      date: els.invDate.value,
+      currency: els.currency.value,
+      items: items,
+      notes: els.notes.value.trim()
+    };
+  }
+  function calcTotal(inv){
+    return inv.items.reduce(function(s,it){ return s + (Number(it.amount)||0); }, 0);
+  }
+  function totalUSD(inv){
+    var t = calcTotal(inv);
+    return inv.currency === "USD" ? t : t / RATE;
+  }
+
+  function makeItemRow(item){
+    item = item || { description:"", quantity:1, unit:"", unitPrice:0 };
+    var row = document.createElement("div");
+    row.className = "item-row";
+
+    function field(cls, label, value, clsInput, inputAttrs){
+      var wrap = document.createElement("div");
+      wrap.className = cls;
+      var lab = document.createElement("span");
+      lab.className = "mob-label"; lab.textContent = label;
+      var inp = document.createElement("input");
+      inp.value = value;
+      if(clsInput) inp.className = clsInput;
+      if(inputAttrs){ for(var k in inputAttrs) inp.setAttribute(k, inputAttrs[k]); }
+      inp.setAttribute("aria-label", label);
+      inp.addEventListener("input", refreshTotals);
+      wrap.appendChild(lab); wrap.appendChild(inp);
+      return wrap;
+    }
+
+    row.appendChild(field("f-desc","Description", item.description || ""));
+    row.appendChild(field("f-qty","Qty", item.quantity != null ? item.quantity : 1, "num", {type:"number", min:"0", step:"any", inputmode:"decimal"}));
+    row.appendChild(field("f-unit","Unit", item.unit || ""));
+    row.appendChild(field("f-price","Unit price", item.unitPrice || 0, "num", {type:"number", min:"0", step:"any", inputmode:"decimal"}));
+
+    var amtWrap = document.createElement("div");
+    amtWrap.className = "f-amount";
+    var amtLab = document.createElement("span"); amtLab.className = "mob-label"; amtLab.textContent = "Amount";
+    var amt = document.createElement("div"); amt.className = "amount"; amt.textContent = "—";
+    amtWrap.appendChild(amtLab); amtWrap.appendChild(amt);
+    row.appendChild(amtWrap);
+
+    var delWrap = document.createElement("div");
+    delWrap.className = "f-del";
+    var del = document.createElement("button");
+    del.type = "button"; del.className = "item-del"; del.textContent = "×";
+    del.setAttribute("aria-label","Remove line item");
+    del.addEventListener("click", function(){ row.remove(); refreshTotals(); });
+    delWrap.appendChild(del);
+    row.appendChild(delWrap);
+
+    return row;
+  }
+
+  function setInvoice(inv){
+    els.invSeller.value = inv.seller || "";
+    els.seller.value = inv.seller || "";
+    els.buyer.value = inv.buyer || "";
+    els.invNumber.value = inv.number || newInvoiceNo();
+    els.invDate.value = inv.date || todayStr();
+    els.currency.value = (inv.currency === "USD") ? "USD" : "IDR";
+    els.notes.value = inv.notes || "";
+    els.itemsBody.innerHTML = "";
+    var items = (inv.items && inv.items.length) ? inv.items : [{description:"", quantity:1, unit:"", unitPrice:0}];
+    items.forEach(function(it){ els.itemsBody.appendChild(makeItemRow(it)); });
+    els.paidBox.classList.remove("show");
+    refreshTotals();
+  }
+
+  function refreshTotals(){
+    var inv = getInvoice();
+    var total = calcTotal(inv);
+    var cur = inv.currency;
+    els.subtotal.textContent = fmtMoney(total, cur);
+    els.total.textContent = fmtMoney(total, cur);
+    els.itemsBody.querySelectorAll(".item-row").forEach(function(row){
+      var qty = parseFloat(row.querySelector(".f-qty input").value) || 0;
+      var price = parseFloat(row.querySelector(".f-price input").value) || 0;
+      row.querySelector(".amount").textContent = fmtMoney(qty*price, cur);
+    });
+    if(cur === "USD"){
+      els.payLocal.textContent = fmtMoney(total, "USD") + "  (= " + fmtMoney(total*RATE, "IDR") + ")";
+      els.payUsd.textContent = fmtMoney(total, "USD");
+    } else {
+      els.payLocal.textContent = fmtMoney(total, "IDR");
+      els.payUsd.textContent = fmtMoney(total/RATE, "USD") + " USD";
+    }
+  }
+
+  /* ---------- AI via Pollinations ---------- */
+  function extractJSON(text){
+    if(!text) throw new Error("empty");
+    var t = String(text).trim();
+    try { return JSON.parse(t); } catch(e){}
+    var fence = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if(fence){ try { return JSON.parse(fence[1].trim()); } catch(e){} }
+    var start = t.indexOf("{"), end = t.lastIndexOf("}");
+    if(start >= 0 && end > start){
+      try { return JSON.parse(t.slice(start, end+1)); } catch(e){}
+    }
+    throw new Error("bad json");
+  }
+  function pollinations(prompt){
+    var url = "https://text.pollinations.ai/" + encodeURIComponent(prompt) + "?model=openai&json=true";
+    return fetch(url).then(function(res){
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return res.text();
+    }).then(function(text){
+      var data;
+      try { data = JSON.parse(text); } catch(e){ return text; }
+      if(data && data.choices && data.choices[0] && data.choices[0].message){
+        return data.choices[0].message.content;
+      }
+      return data;
+    });
+  }
+
+  function parseSale(){
+    var text = els.sale.value.trim();
+    hideAlerts();
+    if(!text){
+      showError("Type a sale description first — or tap one of the examples above the button.");
+      els.sale.focus();
+      return;
+    }
+    setLoading(true);
+    var prompt =
+      "You are an invoice parser for small Indonesian sellers. Parse the sale description below into an invoice.\n" +
+      "Return ONLY a valid JSON object, no markdown, no explanation, with exactly these keys:\n" +
+      "\"buyer\": string (who bought it; empty string if not mentioned),\n" +
+      "\"items\": array of {\"description\": string, \"quantity\": number, \"unit\": string (e.g. kg, pcs, pack, project; empty string if none), \"unitPrice\": number, \"amount\": number},\n" +
+      "\"currency\": \"IDR\" or \"USD\",\n" +
+      "\"total\": number,\n" +
+      "\"notes\": string (short note if the seller mentioned one, else empty string).\n" +
+      "Rules: Indonesian price formats: \"Rp150.000\" means 150000, \"Rp1.275.000\" means 1275000, \"150rb\" means 150000. " +
+      "If a total price and quantity are given, unitPrice = total / quantity. amount must equal quantity * unitPrice. total must equal the sum of amounts. " +
+      "Numbers must be plain numbers without thousand separators or currency symbols.\n" +
+      "Sale description: \"" + text.replace(/"/g, "'") + "\"";
+
+    pollinations(prompt).then(function(raw){
+      var data = (typeof raw === "string") ? extractJSON(raw) : raw;
+      if(!data || !Array.isArray(data.items) || !data.items.length){
+        throw new Error("no items");
+      }
+      var items = data.items.map(function(it){
+        var qty = Number(it.quantity) || 1;
+        var price = Number(it.unitPrice);
+        if(isNaN(price)){
+          var amt = Number(it.amount);
+          price = !isNaN(amt) && qty ? amt/qty : 0;
+        }
+        return {
+          description: String(it.description || "").trim(),
+          quantity: qty,
+          unit: String(it.unit || "").trim(),
+          unitPrice: price,
+          amount: Math.round(qty*price*100)/100
+        };
+      }).filter(function(it){ return it.description || it.unitPrice; });
+      if(!items.length) throw new Error("no items");
+
+      var current = getInvoice();
+      setInvoice({
+        seller: els.seller.value.trim() || current.seller,
+        buyer: String(data.buyer || "").trim(),
+        number: current.number || newInvoiceNo(),
+        date: current.date || todayStr(),
+        currency: (String(data.currency||"").toUpperCase() === "USD") ? "USD" : "IDR",
+        items: items,
+        notes: String(data.notes || "").trim()
+      });
+      setLoading(false);
+      els.parseOk.textContent = "Invoice generated — check the line items on the right, edit anything, then share it or let the buyer pay with PayPal.";
+      els.parseOk.classList.add("show");
+      generateReminder(false);
+    }).catch(function(){
+      setLoading(false);
+      showError("The AI could not parse that description (network issue or unclear wording). Nothing was filled in automatically — try rephrasing it, or edit the invoice on the right by hand: every field and line item is editable.");
+    });
+  }
+
+  function showError(msg){
+    els.parseError.textContent = msg;
+    els.parseError.classList.add("show");
+  }
+  function hideAlerts(){
+    els.parseError.classList.remove("show");
+    els.parseOk.classList.remove("show");
+  }
+  function setLoading(on){
+    els.btnParse.disabled = on;
+    els.btnParse.classList.toggle("loading", on);
+    els.btnParseLabel.textContent = on ? "Asking the AI…" : "Generate invoice with AI";
+  }
+
+  /* ---------- Reminder ---------- */
+  function fallbackReminder(inv){
+    var total = fmtMoney(calcTotal(inv), inv.currency);
+    var buyer = inv.buyer || "there";
+    return "Hi " + buyer + "! This is a friendly reminder about invoice " + (inv.number || "") +
+      " for " + total + ". You can pay securely via PayPal using the payment button on the invoice. Thank you so much for your business!";
+  }
+  function generateReminder(manual){
+    var inv = getInvoice();
+    if(!calcTotal(inv)){
+      if(manual) toast("Add a priced line item first, then generate the reminder.");
+      els.reminder.value = fallbackReminder(inv);
+      return;
+    }
+    var firstItems = inv.items.slice(0,3).map(function(i){ return i.description; }).filter(Boolean).join(", ");
+    var prompt =
+      "Write a short, friendly WhatsApp payment reminder message (max 60 words, warm tone, no hashtags) from a small seller to their buyer. " +
+      "Match the language of the buyer's name and items (Indonesian if Indonesian, otherwise English). " +
+      "Buyer: " + (inv.buyer || "customer") + ". Invoice number: " + inv.number + ". Items: " + (firstItems || "goods") +
+      ". Total due: " + fmtMoney(calcTotal(inv), inv.currency) + ". Mention they can pay via the PayPal button on the invoice, and thank them. " +
+      "Return ONLY the message text, no quotes, no JSON.";
+    pollinations(prompt).then(function(raw){
+      var msg = (typeof raw === "string") ? raw : (raw && raw.message) ? raw.message : "";
+      msg = String(msg || "").trim().replace(/^["']|["']$/g, "");
+      if(msg.length < 15) throw new Error("short");
+      els.reminder.value = msg;
+      if(manual) toast("Reminder regenerated by AI.");
+    }).catch(function(){
+      els.reminder.value = fallbackReminder(inv);
+      if(manual) toast("AI unavailable — a standard reminder was filled in instead.");
+    });
+  }
+
+  /* ---------- Actions ---------- */
+  function copyText(text, okMsg){
+    function done(){ toast(okMsg); }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done).catch(function(){ legacyCopy(text); done(); });
+    } else { legacyCopy(text); done(); }
+  }
+  function legacyCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  function saveHistory(){
+    var inv = getInvoice();
+    if(!calcTotal(inv) && !inv.buyer){
+      toast("Nothing to save yet — generate or fill in an invoice first.");
+      return;
+    }
+    var list = loadHistory();
+    list.unshift({ id: inv.number + "-" + Date.now(), savedAt: new Date().toISOString(), invoice: inv });
+    list = list.slice(0, 30);
+    try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch(e){}
+    renderHistory();
+    toast("Saved to history in this browser.");
+  }
+  function loadHistory(){
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch(e){ return []; }
+  }
+  function renderHistory(){
+    var list = loadHistory();
+    els.historyList.innerHTML = "";
+    if(!list.length){
+      var empty = document.createElement("div");
+      empty.className = "history-empty";
+      empty.textContent = "No saved invoices yet. Generate one and tap “Save to history” under the invoice.";
+      els.historyList.appendChild(empty);
+      return;
+    }
+    list.forEach(function(entry){
+      var inv = entry.invoice || {};
+      var total = calcTotal({ items: inv.items || [] });
+      var item = document.createElement("div");
+      item.className = "history-item";
+
+      var main = document.createElement("div"); main.className = "h-main";
+      var title = document.createElement("div"); title.className = "h-title";
+      title.textContent = (inv.buyer || "Unnamed buyer") + " · " + (inv.number || "");
+      var meta = document.createElement("div"); meta.className = "h-meta";
+      var d = entry.savedAt ? new Date(entry.savedAt) : null;
+      meta.textContent = d ? ("Saved " + d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) + ", " + d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})) : "";
+      main.appendChild(title); main.appendChild(meta);
+
+      var amt = document.createElement("div"); amt.className = "h-amt";
+      amt.textContent = fmtMoney(total, inv.currency === "USD" ? "USD" : "IDR");
+
+      var open = document.createElement("button");
+      open.className = "btn btn-outline btn-small"; open.textContent = "Open";
+      open.addEventListener("click", function(){
+        setInvoice(inv);
+        els.reminder.value = fallbackReminder(getInvoice());
+        toast("Invoice " + (inv.number || "") + " loaded.");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+      var del = document.createElement("button");
+      del.className = "btn btn-small btn-danger-ghost"; del.textContent = "Delete";
+      del.setAttribute("aria-label", "Delete saved invoice " + (inv.number || ""));
+      del.addEventListener("click", function(){
+        var next = loadHistory().filter(function(e){ return e.id !== entry.id; });
+        try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch(e){}
+        renderHistory();
+        toast("Deleted from history.");
+      });
+
+      item.appendChild(main); item.appendChild(amt); item.appendChild(open); item.appendChild(del);
+      els.historyList.appendChild(item);
+    });
+  }
+
+  function shareLink(){
+    var inv = getInvoice();
+    var json = JSON.stringify(inv);
+    var encoded = btoa(unescape(encodeURIComponent(json))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    var url = location.href.split("#")[0] + "#inv=" + encoded;
+    try { history.replaceState(null, "", "#inv=" + encoded); } catch(e){}
+    els.shareLink.value = url;
+    els.shareOut.classList.add("show");
+    copyText(url, "Share link copied — anyone opening it sees this invoice.");
+  }
+  function loadFromHash(){
+    var m = location.hash.match(/#inv=([A-Za-z0-9\-_]+)/);
+    if(!m) return false;
+    try {
+      var b64 = m[1].replace(/-/g,"+").replace(/_/g,"/");
+      while(b64.length % 4) b64 += "=";
+      var json = decodeURIComponent(escape(atob(b64)));
+      var inv = JSON.parse(json);
+      if(inv && Array.isArray(inv.items)){
+        setInvoice(inv);
+        els.reminder.value = fallbackReminder(getInvoice());
+        toast("Invoice loaded from the shared link.");
+        return true;
+      }
+    } catch(e){}
+    return false;
+  }
+
+  /* ---------- PayPal ---------- */
+  function renderPayPal(){
+    var container = $("paypal-buttons");
+    var fallback = $("paypal-fallback");
+    if(!window.paypal || !window.paypal.Buttons){
+      fallback.style.display = "block";
+      return;
+    }
+    try {
+      window.paypal.Buttons({
+        style: { layout: "vertical", color: "blue", shape: "rect", label: "paypal" },
+        createOrder: function(data, actions){
+          var inv = getInvoice();
+          var usd = totalUSD(inv);
+          if(!(usd > 0)){
+            toast("Add a priced line item before checkout.");
+            throw new Error("zero total");
+          }
+          return actions.order.create({
+            purchase_units: [{
+              description: "Invoice " + (inv.number || "") + (inv.buyer ? " — " + inv.buyer : ""),
+              custom_id: inv.number || "",
+              amount: { currency_code: "USD", value: usd.toFixed(2) }
+            }]
+          });
+        },
+        onApprove: function(data, actions){
+          return actions.order.capture().then(function(details){
+            var inv = getInvoice();
+            els.paidOrder.textContent = data.orderID || (details && details.id) || "—";
+            var amt = "—";
+            try {
+              var pu = details.purchase_units[0];
+              amt = pu.payments.captures[0].amount.value + " " + pu.payments.captures[0].amount.currency_code;
+            } catch(e){
+              amt = fmtMoney(totalUSD(inv), "USD");
+            }
+            els.paidAmount.textContent = amt;
+            var payer = "—";
+            try { payer = (details.payer.name.given_name + " " + (details.payer.name.surname || "")).trim() + " (" + details.payer.email_address + ")"; }
+            catch(e){ payer = "Sandbox buyer"; }
+            els.paidPayer.textContent = payer;
+            els.paidInvoice.textContent = inv.number || "—";
+            els.paidBox.classList.add("show");
+            els.paidBox.scrollIntoView({ behavior: "smooth", block: "center" });
+            toast("Payment captured in PayPal Sandbox.");
+          });
+        },
+        onError: function(){
+          toast("PayPal checkout hit an error — check the total and try again.");
+        },
+        onCancel: function(){
+          toast("Checkout cancelled — the invoice is unchanged.");
+        }
+      }).render("#paypal-buttons");
+    } catch(e){
+      fallback.style.display = "block";
+    }
+  }
+
+  /* ---------- Examples ---------- */
+  var EXAMPLES = [
+    { lang: "ID", text: "Jual 10kg sayur ke Warung Bu Siti Rp150.000" },
+    { lang: "EN", text: "Sold 2 dozen eggs and 5kg rice to Mr. Budi for Rp185.000" },
+    { lang: "ID", text: "Jual 50 bungkus keripik singkong ke Toko Makmur, Rp8.000 per bungkus" },
+    { lang: "EN", text: "Logo design for Sarah's bakery, 1 project, $120" },
+    { lang: "ID", text: "Jual 3 karung beras 25kg ke Pak Haji Anwar, total Rp1.275.000" },
+    { lang: "EN", text: "Catering: 30 lunch boxes for an office meeting at Rp45.000 each" }
+  ];
+  EXAMPLES.forEach(function(ex){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip";
+    var l = document.createElement("span"); l.className = "lang"; l.textContent = ex.lang;
+    b.appendChild(l);
+    b.appendChild(document.createTextNode(ex.text));
+    b.addEventListener("click", function(){
+      els.sale.value = ex.text;
+      els.sale.focus();
+      hideAlerts();
+    });
+    els.chips.appendChild(b);
+  });
+
+  /* ---------- Wiring ---------- */
+  els.btnParse.addEventListener("click", parseSale);
+  els.sale.addEventListener("keydown", function(e){
+    if((e.metaKey || e.ctrlKey) && e.key === "Enter") parseSale();
+  });
+  $("btn-add-item").addEventListener("click", function(){
+    els.itemsBody.appendChild(makeItemRow());
+    refreshTotals();
+  });
+  els.currency.addEventListener("change", refreshTotals);
+  [els.buyer, els.invNumber].forEach(function(el){ el.addEventListener("input", refreshTotals); });
+  els.invSeller.addEventListener("input", function(){ els.seller.value = els.invSeller.value; persistSeller(); });
+  els.seller.addEventListener("input", function(){ els.invSeller.value = els.seller.value; persistSeller(); });
+  function persistSeller(){
+    try { localStorage.setItem(LS_SELLER, els.seller.value); } catch(e){}
+  }
+  $("btn-copy-reminder").addEventListener("click", function(){
+    var t = els.reminder.value.trim();
+    if(!t){ toast("There is no reminder text yet — generate an invoice first."); return; }
+    copyText(t, "Reminder copied — paste it into WhatsApp.");
+  });
+  $("btn-reminder-ai").addEventListener("click", function(){ generateReminder(true); });
+  $("btn-print").addEventListener("click", function(){
+    try { window.print(); }
+    catch(e){ toast("Use your browser's Print command to print the invoice."); }
+  });
+  $("btn-save").addEventListener("click", saveHistory);
+  $("btn-share").addEventListener("click", shareLink);
+  $("btn-new").addEventListener("click", function(){
+    setInvoice({ seller: els.seller.value.trim(), number: newInvoiceNo(), date: todayStr(), currency: "IDR",
+      items: [{description:"", quantity:1, unit:"", unitPrice:0}], notes: "", buyer: "" });
+    els.sale.value = "";
+    els.reminder.value = "";
+    els.shareOut.classList.remove("show");
+    try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+    hideAlerts();
+    toast("Fresh invoice started.");
+  });
+
+  /* ---------- Init ---------- */
+  var savedSeller = "";
+  try { savedSeller = localStorage.getItem(LS_SELLER) || ""; } catch(e){}
+  var fromLink = loadFromHash();
+  if(!fromLink){
+    setInvoice({
+      seller: savedSeller,
+      number: newInvoiceNo(),
+      date: todayStr(),
+      currency: "IDR",
+      buyer: "",
+      notes: "",
+      items: [{ description: "", quantity: 1, unit: "", unitPrice: 0 }]
+    });
+  } else if(savedSeller && !els.invSeller.value){
+    els.invSeller.value = savedSeller; els.seller.value = savedSeller;
+  }
+  renderHistory();
+  renderPayPal();
+})();
+</script>
+</body>
+</html>
